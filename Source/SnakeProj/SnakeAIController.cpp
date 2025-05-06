@@ -5,8 +5,10 @@
 #include "Apple.h"
 #include "SnakeGameStateBase.h"
 #include "SnakePawn.h"
+#include "Wall.h"
+#include "SnakeBody.h"
 
-constexpr ECollisionChannel Interactable_TC = ECC_GameTraceChannel1;
+
 
 void ASnakeAIController::BeginPlay()
 {
@@ -42,7 +44,7 @@ void ASnakeAIController::FindApples(FVector position)
     QueryParams.AddIgnoredActor(this);
 
     GetWorld()->SweepMultiByChannel(HitResults, position, position + FVector(0, 0, 50.0f), FQuat::Identity,
-        Interactable_TC, FCollisionShape::MakeSphere(50000.0f), QueryParams);
+        ECC_GameTraceChannel1, FCollisionShape::MakeSphere(50000.0f), QueryParams);
     bool bResult = true;
     bFoundApple = false;
     for (const FHitResult& Hit : HitResults)
@@ -69,31 +71,37 @@ void ASnakeAIController::SetNextLocation(FVector position)
         ESnakeMoveDirection bestDirection = ESnakeMoveDirection::NONE;
         float bestVectorDirecton = -200.0f;
 
+        FVector ActorLocation = GetPawn()->GetActorLocation();
+
         float testValue = FVector::DotProduct(direction, FVector(1.0f, 0, 0));
-        if (testValue > bestVectorDirecton && (previousDirection != ESnakeMoveDirection::DOWN))
+        if (testValue > bestVectorDirecton && (previousDirection != ESnakeMoveDirection::DOWN) && DoLineTrace(ActorLocation, FVector(1.0f, 0, 0)))
         {
             bestDirection = ESnakeMoveDirection::UP;
             bestVectorDirecton = testValue;
         }
 
         testValue = FVector::DotProduct(direction, FVector(-1.0f, 0, 0));
-        if (testValue > bestVectorDirecton && (previousDirection != ESnakeMoveDirection::UP))
+        if (testValue > bestVectorDirecton && (previousDirection != ESnakeMoveDirection::UP) && DoLineTrace(ActorLocation, FVector(-1.0f, 0, 0)))
         {
             bestDirection = ESnakeMoveDirection::DOWN;
             bestVectorDirecton = testValue;
         }
 
         testValue = FVector::DotProduct(direction, FVector(0, 1.0f, 0));
-        if (testValue > bestVectorDirecton && (previousDirection != ESnakeMoveDirection::LEFT))
+        if (testValue > bestVectorDirecton && (previousDirection != ESnakeMoveDirection::LEFT) && DoLineTrace(ActorLocation, FVector(0, 1.0f, 0)))
         {
             bestDirection = ESnakeMoveDirection::RIGHT;
             bestVectorDirecton = testValue;
         }
         testValue = FVector::DotProduct(direction, FVector(0, -1.0f, 0));
-        if (testValue > bestVectorDirecton && (previousDirection != ESnakeMoveDirection::RIGHT))
+        if (testValue > bestVectorDirecton && (previousDirection != ESnakeMoveDirection::RIGHT) && DoLineTrace(ActorLocation, FVector(0, -1.0f, 0)))
         {
             bestDirection = ESnakeMoveDirection::LEFT;
             bestVectorDirecton = testValue;
+        }
+        if (bestDirection == ESnakeMoveDirection::NONE)
+        {
+            bestDirection = ESnakeMoveDirection::UP;
         }
         snakePawn->SetNextSnakeDirection(bestDirection);
 
@@ -103,6 +111,60 @@ void ASnakeAIController::SetNextLocation(FVector position)
 void ASnakeAIController::CheckDirection(FVector position, ESnakeMoveDirection MoveDirection)
 {
 
+}
+
+bool ASnakeAIController::DoLineTrace(FVector Start, FVector Direction)
+{
+    bool bResult = true;
+    TArray<FHitResult> HitResults;
+
+    FCollisionShape CollisionShape = FCollisionShape::MakeSphere(10.0f); // Small detection radius
+
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(GetPawn());
+
+    bool bHit = GetWorld()->LineTraceMultiByChannel(
+        HitResults,
+        Start + FVector(0,0,10),
+        FVector(0, 0, 10) + Start + Direction * 120,
+        ECC_GameTraceChannel2,
+        QueryParams
+    );
+
+
+	for (const FHitResult& Hit : HitResults)
+	{
+        // no other way, tracing does not behave as one would expect. bHit doesn't work, becuase block in profile doens't block, for whatever reason, jesus christ.
+        // This whole project is absolutely cursed, do not look too deep into it, I don't know what will happen to you if you do.
+		if (Cast<AWall>(Hit.GetActor())) 
+        {
+			GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Orange, FString("Found Actor"));
+			bResult = false;
+		}
+		else if (Cast<APawn>(Hit.GetActor()))
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Orange, FString("Found Actor"));
+			bResult = false;
+		}
+        else if (Cast<ASnakeBody>(Hit.GetActor()))
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Orange, FString("Found Actor"));
+            bResult = false;
+        }
+	}
+
+    DrawDebugLine(
+        GetWorld(),
+        Start + FVector(0, 0, 10),
+        Start + FVector(0, 0, 10) + Direction * 120,
+        FColor::Red,   // Line color
+        false,         // Persistent? Set to true if you want it to stay
+        0.2f,          // Lifetime (in seconds)
+        0,             // Depth priority
+        2.0f           // Thickness
+    );
+
+    return bResult;
 }
 
 void ASnakeAIController::Tick(float DeltaTime)

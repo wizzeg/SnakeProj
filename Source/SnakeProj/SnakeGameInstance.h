@@ -23,6 +23,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Scores", meta = (AllowPrivateAcces = "true"))
 	TArray<int32> Scores = {0, 0};
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameMode", meta = (AllowPrivateAcces = "true"))
+	bool bIsCoop = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameMode", meta = (AllowPrivateAcces = "true"))
+	int32 ApplesToEat = 10;
+
 public:
 	UFUNCTION(BlueprintCallable)
 	void AddSnakeControllers(TArray<ESnakeControllerType> types);
@@ -38,4 +44,19 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE void SetScoresAtIndex(int32 index, int32 score) { Scores[index] = score; };
+
+	UFUNCTION(BlueprintCallable)
+	void ResetGame();
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void SetApplesToEat(int32 amount) { ApplesToEat = amount; };
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE int32 GetApplesToEat() { return ApplesToEat; };
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void SetCoop(bool coop) { bIsCoop = coop; };
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetCoop() { return bIsCoop; };
 };

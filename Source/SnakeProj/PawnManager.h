@@ -17,6 +17,9 @@ public:
 	// Sets default values for this pawn's properties
 	APawnManager();
 
+
+	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -68,4 +71,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* CameraComp;
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Event")
+	void OnDestroyMap();
 };

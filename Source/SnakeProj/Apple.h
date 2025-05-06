@@ -38,5 +38,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Apple")
 	bool EatApple(int32 playerID);
 
-
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayParticleEffect();
 };

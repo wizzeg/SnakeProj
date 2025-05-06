@@ -3,6 +3,7 @@
 
 #include "PawnManager.h"
 #include "SnakePawn.h"
+#include "SnakeGameStateBase.h"
 
 
 // Sets default values
@@ -30,11 +31,25 @@ APawnManager::APawnManager()
 
 }
 
+void APawnManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+    ASnakeGameStateBase* gameState = Cast<ASnakeGameStateBase>(GetWorld()->GetGameState());
+    if (IsValid(gameState))
+    {
+        gameState->OnDestroyMap.RemoveDynamic(this, &APawnManager::OnDestroyMap);
+    }
+}
+
 // Called when the game starts or when spawned
 void APawnManager::BeginPlay()
 {
 	Super::BeginPlay();
-
+    ASnakeGameStateBase* gameState = Cast<ASnakeGameStateBase>(GetWorld()->GetGameState());
+    if (IsValid(gameState))
+    {
+        gameState->OnDestroyMap.AddUniqueDynamic(this, &APawnManager::OnDestroyMap);
+    }
 }
 
 FVector APawnManager::FindCameraPosition()
@@ -61,6 +76,7 @@ void APawnManager::MoveCamera(FVector position)
 
 int32 APawnManager::AddPlayerPawn(APawn* pawn)
 {
+    GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Orange, FString("Added Player Pawn"));
     return PlayerPawns.Add(pawn);
 }
 
@@ -87,6 +103,11 @@ void APawnManager::MovePlayer2(ESnakeMoveDirection direction)
     }
 }
 
+void APawnManager::OnDestroyMap()
+{
+    PlayerPawns.Empty();
+}
+
 // Called every frame
 void APawnManager::Tick(float DeltaTime)
 {
@@ -98,5 +119,4 @@ void APawnManager::Tick(float DeltaTime)
 void APawnManager::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }

@@ -3,7 +3,7 @@
 #include "SnakeGameStateBase.h"
 #include "SnakePawn.h"
 
-void ASnakeGameStateBase::AddSnakePawns(TArray<class ASnakePawn*> snakes)
+void ASnakeGameStateBase::AddSnakePawns(TArray<ASnakePawn*> snakes)
 {
 	for (size_t i = 0; i < snakes.Num(); i++)
 	{
@@ -13,14 +13,23 @@ void ASnakeGameStateBase::AddSnakePawns(TArray<class ASnakePawn*> snakes)
 
 void ASnakeGameStateBase::TriggerOnAppleEaten(int32 playerID)
 {
-	OnAppleEaten.Broadcast(playerID);
 	AppleEaten(playerID);
+	OnAppleEaten.Broadcast(playerID);
+
 }
 
 void ASnakeGameStateBase::TriggerOnDestroyMap()
 {
-	OnDestroyMap.Broadcast();
+	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Silver, FString("DestroyMapCalled"));
 	SnakePawns.Empty();
+	SnakesAlive = 0;
+	//bStartTick = false;
+	//timer = 0.0f;
+	StopTick();
+	ApplesEaten = 0;
+	OnDestroyMap.Broadcast();
+	ApplesEaten = 0;
+
 }
 
 void ASnakeGameStateBase::AppleEaten(int32 playerID) // this will bind first, and be called first.
@@ -40,6 +49,12 @@ void ASnakeGameStateBase::AppleEaten(int32 playerID) // this will bind first, an
 		bValidPlayerID = false;
 	}
 	ApplesEaten++;
+	GEngine->AddOnScreenDebugMessage(-1, 10,FColor::Silver, FString::Printf(TEXT("Scores are : %d %d, with total apples eaten %d"), Player1Score, Player2Score, ApplesEaten));
+	if (ApplesEaten >= ApplesToEat)
+	{
+		ApplesEaten = 0;
+		TriggerOnDestroyMap();
+	}
 }
 
 FVector ASnakeGameStateBase::GetSnakesAvergePosition()
@@ -47,11 +62,31 @@ FVector ASnakeGameStateBase::GetSnakesAvergePosition()
 	FVector AveragePosition = FVector::ZeroVector;
 	for (size_t i = 0; i < SnakePawns.Num(); i++)
 	{
-		AveragePosition += SnakePawns[i]->GetActorLocation();
+		if (SnakePawns[i].IsValid())
+		{
+			AveragePosition += SnakePawns[i]->GetActorLocation();
+		}
 	}
 	if (SnakePawns.Num() > 0)
 	{
 		return AveragePosition / SnakePawns.Num();
 	}
 	return FVector::ZeroVector;
+}
+
+void ASnakeGameStateBase::TriggerSnakesDead()
+{
+	OnSnakesDead.Broadcast();
+}
+
+void ASnakeGameStateBase::SnakeDied()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Silver, FString("SnakeDied"));
+	SnakesAlive--;
+	if (SnakesAlive <= 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Silver, FString("All snakes dead"));
+		SnakesAlive = 0;
+		TriggerSnakesDead();
+	}
 }

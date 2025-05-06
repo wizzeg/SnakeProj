@@ -20,3 +20,9 @@ TArray<ESnakeControllerType> USnakeGameInstance::GetControllerTypes()
 {
 	return ControllerTypes;
 }
+
+void USnakeGameInstance::ResetGame()
+{
+	ClearSnakeControllers();
+	Scores = { 0, 0 };
+}

@@ -54,6 +54,10 @@ protected:
 	bool bAlive = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Snake")
+	bool bReportedDeath = false;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Snake")
 	int32 playerID = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Snake")
@@ -118,4 +122,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "snake")
 	FORCEINLINE ESnakeMoveDirection GetPreviousDirection() { return PreviousDirection; };
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayStupidSoundOmgIJustWantToBeDone();
 };

@@ -30,6 +30,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MapSections");
 	TSubclassOf<AActor> AppleInstance;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MapSections");
+	TSubclassOf<AActor> LightInstance;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GenWorld");
 	TArray<FVector> Spawns = { FVector::ZeroVector, FVector::ZeroVector };
 

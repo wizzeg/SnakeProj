@@ -39,7 +39,7 @@ void AWorldGenActor::Tick(float DeltaTime)
 void AWorldGenActor::GenerateMap(int32 num)
 {
     float multiplier = 100.0f;
-    if (WallInstance != nullptr && FloorInstance != nullptr)
+    if (WallInstance != nullptr && FloorInstance != nullptr) // missing osme, I don't care anymore omg lplease
     {
         FString FilePath = FPaths::ProjectContentDir() + TEXT("Maps/map") + FString::FromInt(num) + TEXT(".txt");
         FString FileContents;
@@ -57,6 +57,11 @@ void AWorldGenActor::GenerateMap(int32 num)
                     if (type == '#')
                     {
                         SpawnActor(WallInstance, position);
+                    }
+                    else if (type == 'L')
+                    {
+                        SpawnActor(FloorInstance, position);
+                        SpawnActor(LightInstance, position);
                     }
                     else if (type == '.')
                     {
@@ -97,15 +102,16 @@ void AWorldGenActor::GenerateMap(int32 num)
 
 void AWorldGenActor::DestroyMap()
 {
-    for (size_t i = 0; i < SpawnedActors.Num(); i++)
-    {
-        if (IsValid(SpawnedActors[i]))
-        {
-            SpawnedActors[i]->Destroy();
-        }
-    }
+    //for (size_t i = 0; i < SpawnedActors.Num(); i++)
+    //{
+    //    if (IsValid(SpawnedActors[i]))
+    //    {
+    //        SpawnedActors[i]->Destroy();
+    //    }
+    //}
     SpawnedActors.Empty();
     Spawns.Empty();
+    Spawns = { FVector::ZeroVector, FVector::ZeroVector };
     ApplePositions.Empty();
 }
 

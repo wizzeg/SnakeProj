@@ -7,9 +7,12 @@
 #include "SnakePawn.h"
 #include "SnakeAIController.generated.h"
 
+//constexpr ECollisionChannel Interactable_TC = ECC_GameTraceChannel1;
 /**
  * 
  */
+
+//TODO: Obstacle avoidance
 UCLASS()
 class SNAKEPROJ_API ASnakeAIController : public AAIController
 {
@@ -47,6 +50,8 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	FORCEINLINE void DestroySelf() { Destroy(); };
+
+	bool DoLineTrace(FVector start, FVector direction);
 
 public:
 	void Tick(float DeltaTime) override;

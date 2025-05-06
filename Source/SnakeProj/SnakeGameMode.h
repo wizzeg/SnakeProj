@@ -55,11 +55,15 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Event")
 	void AppleEaten(int32 playerID);
 
+	UFUNCTION(BlueprintCallable, Category = "Event")
+	void OnSnakesDead();
+
+	UFUNCTION(BlueprintCallable, Category = "Event")
+	void SubscribeOnSnakesDead();
+
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Event")
 	void OnDestroyMap();
 
-	UFUNCTION(BlueprintNativeEvent, Category = "Event")
-	void NoMoreMaps();
 };

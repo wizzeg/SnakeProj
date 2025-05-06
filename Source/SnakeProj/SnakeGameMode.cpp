@@ -45,7 +45,8 @@ void ASnakeGameMode::CreateSnakes(TArray<ESnakeControllerType> types, TArray<FVe
 					snake->InitializePosition(position);
 					snake->RegisterSnakePawn();
 					snake->SetControllerType(types[i]);
-					snake->SetPlayerID(snakeNum);
+					snake->SetPlayerID(snakeNum + 1); // spawns need to be placed in order, player 1 need to spawn above player 2... Or maybe not.I don't know, and I don't care at this point
+					SnakeGameState->AddAliveSnake();
 					SnakeGameState->AddSnakePawn(snake);
 					if (types[i] == ESnakeControllerType::AI)
 					{
@@ -58,7 +59,7 @@ void ASnakeGameMode::CreateSnakes(TArray<ESnakeControllerType> types, TArray<FVe
 						}
 						else if (SnakeAIControllerClass)
 						{
-							AIControllers[AIControllerNum]->Possess(snake);
+							AIControllers[AIControllerNum++]->Possess(snake);
 						}
 						else
 						{
@@ -118,7 +119,7 @@ void ASnakeGameMode::AppleEaten(int32 playerID)
 	int32 applesToEat = gameState->GetApplesToEat();
 	int32 applesEaten = gameState->GetApplesEaten();
 
-	if (applesEaten < applesToEat)
+	if (applesEaten < applesToEat && applesEaten != 0) // basically "race condition" on the events, need to do this ugly thing or redesign a lot, and I'm not doing the latter now
 	{
 		if (WorldGenerator)
 		{
@@ -127,32 +128,38 @@ void ASnakeGameMode::AppleEaten(int32 playerID)
 		}
 
 	}
-	// Do this in BP instead probably
-	//else
+	//else // this is a delegate race condition, we'll handle it in snakegamestatebase instead
 	//{
-	//	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, FString("Triggered DESTROY MAP!"));
 	//	gameState->TriggerOnDestroyMap();
-	//	if (CurrentMapNum <= gameState->GetMaxMaps())
-	//	{
-	//		NextMap(CurrentMapNum);
-	//	}
-	//	else
-	//	{
-	//		NoMoreMaps();
-	//	}
 	//}
+}
+
+void ASnakeGameMode::OnSnakesDead() // Blueprints vs C++ has kind collapsed by this point, C++ is just much faster, Blueprints are neat but slows down.
+{
+	ASnakeGameStateBase* SnakeGameState = GetWorld()->GetGameState<ASnakeGameStateBase>();
+	if (IsValid(SnakeGameState))
+	{
+		SnakeGameState->TriggerOnDestroyMap();
+	}
+}
+
+void ASnakeGameMode::SubscribeOnSnakesDead()
+{
+	ASnakeGameStateBase* gameState = Cast<ASnakeGameStateBase>(GameState);
+	if (gameState)
+	{
+		gameState->OnSnakesDead.AddUniqueDynamic(this, &ASnakeGameMode::OnSnakesDead);
+	}
 }
 
 void ASnakeGameMode::OnDestroyMap()
 {
 	AIControllers.Empty();
 	ASnakeGameStateBase* SnakeGameState = GetWorld()->GetGameState<ASnakeGameStateBase>();
-	CurrentMapNum++;
+	//CurrentMapNum++;
+	bAIControllersCreated = false;
 	if (!SnakeGameState) return;
 	SnakeGameState->OnDestroyMap.RemoveDynamic(this, &ASnakeGameMode::OnDestroyMap);
 }
 
-void ASnakeGameMode::NoMoreMaps_Implementation()
-{
-	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, FString("NoMoreMaps"));
-}
+

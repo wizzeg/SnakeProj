@@ -47,6 +47,8 @@ void ASnakePawn::NotifyActorBeginOverlap(AActor* OtherActor)
 		if (apple->EatApple(playerID))
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Green, FString("Apple Eaten!"));
+			// play sound
+			PlayStupidSoundOmgIJustWantToBeDone();
 			if (SnakeBodyBehind.IsValid())
 			{
 				SnakeBodyBehind->SpawnBody();
@@ -86,6 +88,15 @@ void ASnakePawn::NotifyActorBeginOverlap(AActor* OtherActor)
 	{
 		bAlive = false;
 	}
+
+	//if (!bAlive && GameStateWPtr.IsValid())
+	//{
+	//	GameStateWPtr->SnakeDied();
+	//}
+	//if (!GameStateWPtr.IsValid())
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, FString("GameStateInvalid on sphere trace"));
+	//}
 }
 
 // Called when the game starts or when spawned
@@ -101,6 +112,14 @@ void ASnakePawn::Tick(float DeltaTime)
 	if (bAlive)
 	{
 		MoveSnake();
+	}
+	else if (!bReportedDeath)
+	{
+		if (GameStateWPtr.IsValid())
+		{
+			GameStateWPtr->SnakeDied();
+			bReportedDeath = true;
+		}
 	}
 	Super::Tick(DeltaTime);
 

@@ -36,6 +36,7 @@ void AApple::Tick(float DeltaTime)
 bool AApple::EatApple(int32 playerID)
 {
 	if (bEaten) return false;
+	PlayParticleEffect();
 	if (GameStateWPtr.IsValid())
 	{
 		GameStateWPtr->TriggerOnAppleEaten(playerID);

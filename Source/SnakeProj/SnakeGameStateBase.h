@@ -4,11 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
+#include "SnakePawn.h"
 #include "SnakeGameStateBase.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAppleEaten, int32, PlayerID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDestroyMap);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMoveTick);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSnakesDead);
 /**
  * 
  */
@@ -39,9 +41,12 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Events")
 	FOnMoveTick OnMoveTick;
 
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnSnakesDead OnSnakesDead;
+
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Snakes", meta = (AllowPrivateAccess = "true"))
-	TArray<class ASnakePawn*> SnakePawns;
+	UPROPERTY()
+	TArray<TWeakObjectPtr<class ASnakePawn>> SnakePawns;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Snakes", meta = (AllowPrivateAccess = "true"))
 	class APawn* PawnManager;
@@ -61,12 +66,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Variables", meta = (AllowPrivateAccess = "true"))
 	int32 MaxMaps = 2;
 
-public:
-	FORCEINLINE void AddSnakePawn(class ASnakePawn* snake) { SnakePawns.Add(snake); }
-	void AddSnakePawns(TArray<class ASnakePawn*> snakes);
-	FORCEINLINE class ASnakePawn* GetSnakePawnAtIndex(int32 index) { return (index < SnakePawns.Num() ? SnakePawns[index] : nullptr); }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Variables", meta = (AllowPrivateAccess = "true"))
+	int32 SnakesAlive = 0;
 
-	FORCEINLINE void AddSnakePawn(class ASnakeAIController* AIController) { AIControllers.Add(AIController); }
+public:
+	FORCEINLINE void AddSnakePawn(ASnakePawn* snake) { if (snake) SnakePawns.Add(snake); }
+	void AddSnakePawns(TArray<ASnakePawn*> snakes);
+	FORCEINLINE class ASnakePawn* GetSnakePawnAtIndex(int32 index) { return (index < SnakePawns.Num() ? SnakePawns[index].Get() : nullptr); }
+
+	//FORCEINLINE void AddSnakePawn(class ASnakeAIController* AIController) { AIControllers.Add(AIController); }
 	FORCEINLINE class ASnakeAIController* GetAIControllerAtIndex(int32 index) { return (index < AIControllers.Num() ? AIControllers[index] : nullptr); }
 
 	UFUNCTION(BlueprintCallable, Category = "Init")
@@ -111,6 +119,22 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Variables")
 	FORCEINLINE int32 GetMaxMaps() { return MaxMaps; };
+
+	UFUNCTION(BlueprintCallable, Category = "Snakes")
+	void TriggerSnakesDead();
+
+	UFUNCTION(BlueprintCallable, Category = "Snakes")
+	void SnakeDied();
+
+	UFUNCTION(BlueprintCallable, Category = "Snakes")
+	FORCEINLINE int32 GetSnakesAlive() { return SnakesAlive; };
+
+	UFUNCTION(BlueprintCallable, Category = "Snakes")
+	FORCEINLINE void AddAliveSnake() { SnakesAlive++; };
+
+	
+	UFUNCTION(BlueprintCallable, Category = "Snakes")
+	FORCEINLINE void SetApples(int32 amount) { ApplesToEat = amount; };
 
 
 };
