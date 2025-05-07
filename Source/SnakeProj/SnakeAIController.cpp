@@ -69,7 +69,7 @@ void ASnakeAIController::SetNextLocation(FVector position)
 
         ESnakeMoveDirection previousDirection = snakePawn->GetPreviousDirection();
         ESnakeMoveDirection bestDirection = ESnakeMoveDirection::NONE;
-        float bestVectorDirecton = -200.0f;
+        float bestVectorDirecton = -999999999.0f;
 
         FVector ActorLocation = GetPawn()->GetActorLocation();
 
@@ -138,31 +138,28 @@ bool ASnakeAIController::DoLineTrace(FVector Start, FVector Direction)
         // This whole project is absolutely cursed, do not look too deep into it, I don't know what will happen to you if you do.
 		if (Cast<AWall>(Hit.GetActor())) 
         {
-			GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Orange, FString("Found Actor"));
 			bResult = false;
 		}
 		else if (Cast<APawn>(Hit.GetActor()))
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Orange, FString("Found Actor"));
 			bResult = false;
 		}
         else if (Cast<ASnakeBody>(Hit.GetActor()))
         {
-            GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Orange, FString("Found Actor"));
             bResult = false;
         }
 	}
 
-    DrawDebugLine(
-        GetWorld(),
-        Start + FVector(0, 0, 10),
-        Start + FVector(0, 0, 10) + Direction * 120,
-        FColor::Red,   // Line color
-        false,         // Persistent? Set to true if you want it to stay
-        0.2f,          // Lifetime (in seconds)
-        0,             // Depth priority
-        2.0f           // Thickness
-    );
+    //DrawDebugLine(
+    //    GetWorld(),
+    //    Start + FVector(0, 0, 10),
+    //    Start + FVector(0, 0, 10) + Direction * 120,
+    //    FColor::Red,
+    //    false,
+    //    0.05f,
+    //    0,
+    //    2.0f 
+    //);
 
     return bResult;
 }
